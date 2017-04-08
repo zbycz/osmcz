@@ -4,8 +4,9 @@
 var osmcz = osmcz || {};
 osmcz.poiPopup = function (map) {
     // -- constructor --
-
     osmcz._map = map;
+
+    osmcz.createPoiPanel(osmcz.poiSidebar._container)
 };
 
 // static fields
@@ -62,7 +63,7 @@ osmcz.poiPopup.load = function (object) {
 
             //set icon and show
             var icon = osmcz.iconsService.get(feature.properties.tags);
-            poiSidebar.setContent(osmcz.poiPopup.getHtml(feature, icon.options.iconUrl));
+            osmcz.events.onPoiPanelUpdate(feature, icon.options.iconUrl);
             poiSidebar.show();
             osmcz.poiPopupOpen = true;
         }
@@ -71,7 +72,7 @@ osmcz.poiPopup.load = function (object) {
 };
 
 osmcz.poiPopup.open = function (feature, icon) {  //currently from active-layer
-  poiSidebar.setContent(osmcz.poiPopup.getHtml(feature, icon));
+  osmcz.events.onPoiPanelUpdate(feature, icon);
   poiSidebar.show();
   osmcz.poiPopupOpen = true;
   document.title = 'OpenStreetMap.cz';
