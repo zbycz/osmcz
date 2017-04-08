@@ -1,0 +1,26 @@
+{
+  "name": "osmcz",
+  "version": "0.17.0",
+  "scripts": {
+    "start": "webpack --colors --progress --watch --config=config/webpack.config.babel.js",
+    "build": "webpack --config=config/webpack.config.babel.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osmcz/osmcz.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/osmcz/osmcz/issues"
+  },
+  "homepage": "https://github.com/osmcz/osmcz#readme",
+  "dependencies": {
+    "babel-core": "^6.24.1",
+    "babel-loader": "^6.4.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "react": "^15.5.3",
+    "react-dom": "^15.5.3",
+    "webpack": "^2.3.3"
+  }
+}
