@@ -1,4 +1,5 @@
-const root = `${__dirname}/..`
+const root = `${__dirname}/..`;
+const production = process.env.NODE_ENV === 'production';
 
 module.exports = {
     entry: `${root}/js/es6/main.js`,
@@ -6,13 +7,14 @@ module.exports = {
         path: `${root}/dist`,
         filename: 'bundle-es6.js'
     },
+    devtool: production ? '#cheap-source-map' : '#eval-source-map',
     module: {
         loaders: [{
             test: /.js$/,
             loader: 'babel-loader',
             exclude: /node_modules/,
             query: {
-                presets: ['es2015', 'react']
+                presets: ['es2015', 'react', 'stage-0'],
             }
         }]
     }
