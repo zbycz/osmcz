@@ -432,7 +432,7 @@ L.Control.PhotoDBGui = L.Control.extend({
             var lat=DMSToDD(eLat[0], eLat[1], eLat[2], eLatRef, this._precision); // how to get value of options.precision?
             var lon=DMSToDD(eLon[0], eLon[1], eLon[2], eLonRef, this._precision);
             this._updateLatLonLabel(lat, lon);
-            this._showMarker(lat, lon);
+            this._showMarker(lat, lon, true);
 
             pLat.val(lat);
             pLon.val(lon);
