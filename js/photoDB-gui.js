@@ -112,34 +112,34 @@ L.Control.PhotoDBGui = L.Control.extend({
                     <select id="license" class="form-control"></select>
                     <label for="phototype" class="label-margin">Objekt na fotografii:</label>
                     <select id="phototype" class="form-control">
-                        <option value="rozcestnik">Rozcestník</option>
-                        <option value="infotabule">Informační tabule</option>
-                        <option value="mapa">Mapa</option>
-                        <option value="panorama">Panorama</option>
-                        <option value="jiny">Jiný</option>
+                        <option value="gp">Rozcestník</option>
+                        <option value="info">Informační tabule</option>
+                        <option value="map">Mapa</option>
+                        <option value="pano">Panorama</option>
+                        <option value="other">Jiný</option>
                     </select>
                     <div id="guidepostOptions">
                         <label for="guidepostContent" class="label-margin">Typ rozcestníku:</label>
                         <div id="guidepostContent" class="btn-group btn-group-xs" data-toggle="buttons">
                             <label class="btn btn-default">
-                                <input type="checkbox" value="hiking" autocomplete="off">Pěší
+                                <input type="checkbox" name="gp_content[]" value="hiking" autocomplete="off">Pěší
                             </label>
                             <label class="btn  btn-default">
-                                <input type="checkbox" value="cycle" autocomplete="off">Cyklo
+                                <input type="checkbox" name="gp_content[]" value="cycle" autocomplete="off">Cyklo
                             </label>
                             <label class="btn  btn-default">
-                                <input type="checkbox" value="skir" autocomplete="off">Lyžařský
+                                <input type="checkbox" name="gp_content[]" value="ski" autocomplete="off">Lyžařský
                             </label>
                             <label class="btn  btn-default">
-                                <input type="checkbox" value="horse" autocomplete="off">Koňský
+                                <input type="checkbox" name="gp_content[]" value="horse" autocomplete="off">Koňský
                             </label>
                             <label class="btn  btn-default">
-                                <input type="checkbox" value="wheelchair" autocomplete="off">Vozíčkářský
+                                <input type="checkbox" name="gp_content[]" value="wheelchair" autocomplete="off">Vozíčkářský
                             </label>
                         </div>
                         <br>
                         <label for="ref" class="label-margin">Ref:</label>
-                        <input type="text" id="ref" name="ref" value="" placeholder="Například: XX114 nebo 0123/45" class="form-control input-sm"/>
+                        <input type="text" id="ref" name="ref" value="" placeholder="Například: XX114 nebo 0123/45" title="Číslo rozcestníku bez posledního písmene." class="form-control input-sm"/>
                     </div>
                     <label for="note" class="label-margin">Poznámka: </label>
                     <input type="text" id="note" name="note" value="" placeholder="Zde můžete vložit poznámku k fotografii" class="form-control input-sm"/>
@@ -274,7 +274,7 @@ L.Control.PhotoDBGui = L.Control.extend({
     },
 
     _phototypeChanged: function(e) {
-        if (e.target.value == "rozcestnik") {
+        if (e.target.value == "gp") {
             $('#photoDB-upload-form #guidepostOptions').show('1');
         } else {
             $('#photoDB-upload-form #guidepostOptions').hide('1');
@@ -347,7 +347,8 @@ L.Control.PhotoDBGui = L.Control.extend({
                 message.show();
         }
 
-        this._updateSubmitBtnStatus();
+        this._updateSubmitBtnStatus()
+
     },
 
     _updateSubmitBtnStatus: function() {
@@ -519,6 +520,8 @@ L.Control.PhotoDBGui = L.Control.extend({
             elatlon.removeClass("inputError");
             this._latlonError = false;
         }
+
+        this._updateSubmitBtnStatus();
     },
 
     // Get licenses list from api
@@ -577,25 +580,45 @@ L.Control.PhotoDBGui = L.Control.extend({
 
         this._authorChanged();
 
+        // Restore license from cookies
         if (Cookies.get("_photoDB_license") != null)
           $("#photoDB-upload-form #license").val(Cookies.get("_photoDB_license")).change();
 
-        $('#photoDB-upload-form #latlonFs').hide();
-        $('#photoDB-upload-form #otherData').hide();
+        // Switch back to type guidepost
+        $("#photoDB-upload-form #phototype").val('gp').change();
+
+        // Reset guidepostContent buttons
+        $.each($("input[name='gp_content[]']:checked"), function(){
+                $(this).click();
+        });
 
         // Show guidepost options block
         $('#photoDB-upload-form #guidepostOptions').show();
 
+        $('#photoDB-upload-form #latlonFs').hide();
+        $('#photoDB-upload-form #otherData').hide();
+
+        // Reset ref and note fields
+        $('#photoDB-upload-form #ref').val('');
+        $('#photoDB-upload-form #note').val('');
+
+        // Disable upload button
         this._updateSubmitBtnStatus();
 
     },
 
     _submitForm: function() {
+
+        // Update coors from marker
+        $('#photoDB-upload-form #lat').val(this.positionMarker.getLatLng().lat);
+        $('#photoDB-upload-form #lon').val(this.positionMarker.getLatLng().lng);
+
+        var phototype = $('#photoDB-upload-form #phototype option:selected').val();
         var license = $('#photoDB-upload-form #license option:selected').val();
 
         var formData = new FormData($('#photoDB-upload-form')[0]);
         formData.append('license', license);
-
+        formData.append('gp_type', phototype);
 
         //Check selected license and update cookie if needed
         if (Cookies.get("_photoDB_license") == null ||
@@ -605,10 +628,38 @@ L.Control.PhotoDBGui = L.Control.extend({
                 Cookies.set("_photoDB_license", license, {expires: 90});
         }
 
-//         // get radio button value
-//         $('#latlonSource').find('label.active').find('input').prop('value');
 
-        toastr.success('Fotografie byla odeslána.', 'Děkujeme', {closeButton: true, positionClass: "toast-bottom-center"});
+        $.ajax({
+//            url: 'http://localhost/api/upload/guidepost.php',
+            url: 'https://api.openstreetmap.cz/guidepost.php',
+            type: 'POST',
+            data: formData,
+            async: false,
+            success: function (data) {
+                // Find row with "parent.stop_upload" function and extract it's parameters
+                var result = data.match(/parent.stop_upload(.*);/gm).toString().replace("parent.stop_upload", "").replace(/^\(/,"").replace(");","").split(/,(?![^']*'(?:(?:[^']*'){2})*[^']*$)/);
+
+                if (result[0] == 1) { //OK
+                    toastr.success('Fotografie byla odeslána.', 'Děkujeme', {closeButton: true, positionClass: "toast-bottom-center"});
+                } else { // Error during upload
+                    toastr.error('Fotografie se nepodařilo odeslat.<br><em>Detail: </em>' + result[1],
+                                   'Chyba!',
+                                   {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                }
+            },
+            fail: function(data) {
+                toastr.error('Fotografie se nepodařilo odeslat.<br><em>Detail: </em>' + data,
+                                'Chyba!',
+                                {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                return false;
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+
+        return false;
+
     }
 
 
