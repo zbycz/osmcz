@@ -830,6 +830,33 @@ a #photoDB-preview:hover {
     line-height: 1;
 }
 
+#myModal .modal {
+    text-align:center;
+    max-height: 100vh;
+}
+
+#myModal .modal-dialog {
+    display: inline-block;
+    width: auto;
+}
+
+#myModal .modal-body {
+    position:relative;
+    overflow:hidden;
+    max-height: calc(100vh - 160px);
+}
+
+/*#myModal {
+    max-height: 100vh;
+}*/
+
+#myModal #modalImg {
+    max-height: calc(100vh - 225px);
+    height: 100%;
+    width:auto;
+    min-height: 120px;
+}
+
 /* END of PhotoDB-gui.js */
 
 /* leaflet-condensed-attribution plugin*/

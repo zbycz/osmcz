@@ -52,8 +52,11 @@ L.Control.PhotoDBGui = L.Control.extend({
   },
 
     _openSidebar: function(e) {
+
+        e.stopPropagation();
+
         if (osmcz.sidebar.isVisible()) {
-            return;
+            return false;
         }
 
         osmcz.sidebar.setContent(this._sidebarInit());
@@ -97,7 +100,7 @@ L.Control.PhotoDBGui = L.Control.extend({
                     </div>
                     <input type="text" id="latlon" name="latlonDisp" value="" placeholder="--.---, --.---" title="Lat, Lon" class="form-control" readonly />
                 </div>
-                <div id="photoDB-latlon-message" class="photoDB-message mark text-center" style="display: none;"></span>
+                <div id="photoDB-latlon-message" class="photoDB-message mark text-center"></span>
             </fieldset>
 
             <fieldset id="otherData">
@@ -182,7 +185,7 @@ L.Control.PhotoDBGui = L.Control.extend({
         const modalTemplate = ({}) => `
         <!-- Image modal dialog -->
         <div class="modal fade" id="myModal" role="dialog">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-body">
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -195,12 +198,17 @@ L.Control.PhotoDBGui = L.Control.extend({
         // Add template to modal element
         $('#modal-container').html([{}].map(modalTemplate));
 
-        $('#myModal').on('shown.bs.modal', function () {
+        // Copy image source to modal dialog
+        $('#myModal').on('show.bs.modal', function () {
+            // Horizontaly center the modal dialog on screen
+            $('#modalImg').on('load', function () {
+                setTimeout(function () {
+                    $('#myModal').css('margin-left', ($(window).width() - $('#modalImg').width() - 100)/2);
+                }, 10);
+            });
+
             $('#modalImg').attr('src', $('#photoDB-preview').attr('src'));
         });
-
-
-
 
         this._getLicenses();
 
@@ -349,7 +357,7 @@ L.Control.PhotoDBGui = L.Control.extend({
 
         if (file && imgMsg.contents().length == 0 &&
             !this._authorError &&
-            !this._coorsError
+            !this._latlonError
            ) {
             submitBtn.prop('disabled', false);
         } else {
@@ -369,8 +377,12 @@ L.Control.PhotoDBGui = L.Control.extend({
 
         $('#photoDB-upload-form #sourceManual').button('toggle')
 
+        message.html('');
+        message.hide();
+
         $('#photoDB-upload-form #latlonFs').show();
         $('#photoDB-upload-form #otherData').show();
+
 
         this._hideMarker();
         this._updateLatLonLabel(0, 0);
@@ -393,10 +405,7 @@ L.Control.PhotoDBGui = L.Control.extend({
             return bytes.buffer;
         }
 
-        var exif = EXIF.readFromBinaryFile(base64ToArrayBuffer(e.currentTarget.currentSrc));
-
-        if (!exif) {
-            // No exif in image
+        function noExif() {
             message.html("Pozici vyberete kliknutím do mapy.");
             message.show();
 
@@ -404,7 +413,13 @@ L.Control.PhotoDBGui = L.Control.extend({
             pLon.val(0);
             pLat.attr('exif-value', '');
             pLon.attr('exif-value', '');
+        }
 
+        var exif = EXIF.readFromBinaryFile(base64ToArrayBuffer(e.currentTarget.currentSrc));
+
+        if (!exif) {
+            // No exif in image
+            noExif();
             return;
         }
 
@@ -429,17 +444,21 @@ L.Control.PhotoDBGui = L.Control.extend({
             btnSourceExif.button('toggle');
             message.html("Pozici upravíte posunutím ukazatele nebo kliknutím do mapy.");
             message.show();
+        } else {
+            // Exif present, but without GPSLatLon data
+            noExif();
         }
     },
 
 
     _mapClicked: function(e){
         if (! this.positionMarkerVisible) {
-            this._showMarker(e.latlng.lat, e.latlng.lng);
+            this._showMarker(e.latlng.lat, e.latlng.lng, false);
             this._updateLatLonLabel(e.latlng.lat, e.latlng.lng);
 
             var message = $('#photoDB-latlon-message');
             message.html("Pozici upravíte posunutím značky nebo kliknutím do mapy.");
+            message.show();
         } else {
             if ( $('#photoDB-upload-form #sourceExif').hasClass('active')) {
                 $('#photoDB-upload-form #sourceManual').click();
@@ -449,7 +468,7 @@ L.Control.PhotoDBGui = L.Control.extend({
         }
     },
 
-    _showMarker: function (lat, lon) {
+    _showMarker: function (lat, lon, panMap) {
 
         if (!lat || !lon) {
             return;
@@ -457,8 +476,10 @@ L.Control.PhotoDBGui = L.Control.extend({
 
         this.positionMarkerVisible = true;
 
-        this._map.setZoom(18, {animate: false});
-        this._map.panTo([lat, lon], {animate: false});
+        if (panMap) {
+            this._map.setZoom(18, {animate: false});
+            this._map.panTo([lat, lon], {animate: false});
+        }
 
         this.positionMarker.setLatLng([lat, lon]);
         this.positionMarker.bindPopup('Presuň mě na cílové místo');
@@ -486,11 +507,12 @@ L.Control.PhotoDBGui = L.Control.extend({
     _updateLatLonLabel: function(lat, lon) {
         var elatlon = $('#photoDB-upload-form #latlon');
 
+        this._latlonError = true;
+
         if (!lat || lat == 0 || !lon ||lon == 0 ) {
             elatlon.val('');
             elatlon.prop("title","Lat, Lon (Povinné pole!)");
             elatlon.addClass("inputError");
-            this._latlonError = true;
         } else {
             elatlon.val((lat*1).toFixed(this._precision) + ', ' + (lon*1).toFixed(this._precision));
             elatlon.prop("title","Lat, Lon");
