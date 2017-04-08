@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import OpeningHours from './opening-hours/OpeningHours';
+import './Sidebar.scss';
 
 class Sidebar extends Component {
     constructor(props) {
@@ -19,15 +21,19 @@ class Sidebar extends Component {
     render() {
         const {
             iconUrl,
-            feature: {properties: {tags: {name: poiName = ''} = {}} = {}} = {}
+            feature: {properties: {tags: {
+                name: poiName = '',
+                opening_hours: openingHours = ''
+            } = {}} = {}} = {}
         } = this.state;
         return (
-            <div className="leaflet-control">
+            <div className="poi-sidebar">
                 <h4>
                     <img src={iconUrl} className="poi-icon"/>
                     &nbsp;
                     <span className="h4-text">{poiName}</span>
                 </h4>
+                {!!openingHours && <OpeningHours hours={openingHours}/>}
             </div>
         );
     }

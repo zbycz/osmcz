@@ -1033,3 +1033,11 @@ div[group-active=true]:hover {
         overflow-y : auto;
     }
 }
+
+.leaflet-control-container {
+    height: 100%;
+}
+
+.leaflet-sidebar.left.visible {
+    height: 100%;
+}

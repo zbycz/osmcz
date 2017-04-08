@@ -6,7 +6,9 @@ osmcz.poiPopup = function (map) {
     // -- constructor --
     osmcz._map = map;
 
-    osmcz.createPoiPanel(osmcz.poiSidebar._container)
+    var poiSidebarContainerId = 'poi-sidebar-container';
+    osmcz.poiSidebar.setContent('<div id="' + poiSidebarContainerId + '"></div>');
+    osmcz.createPoiPanel(document.getElementById(poiSidebarContainerId));
 };
 
 // static fields

@@ -1,0 +1,29 @@
+.opening-hours {
+    cursor: pointer;
+    .expand {
+        &:hover {
+            text-decoration: none;
+        }
+        .chevron {
+            font-weight: bolder;
+            font-size: 18px;
+        }
+    }
+    .detail {
+        .interval {
+            padding-left: 2em;
+        }
+        .day {
+            text-transform: capitalize;
+        }
+    }
+    .summary {
+        border: none;
+        .open {
+            color: green;
+        }
+        .closed {
+            color: red;
+        }
+    }
+}

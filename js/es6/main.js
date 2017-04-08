@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 
 const osmcz = window.osmcz || {};
 osmcz.events = osmcz.events || {};
+osmcz.events.onPoiPanelUpdate = () => {};
 
 osmcz.createPoiPanel = create;
 
