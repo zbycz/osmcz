@@ -630,6 +630,11 @@ L.Control.PhotoDBGui = L.Control.extend({
         var phototype = $('#photoDB-upload-form #phototype option:selected').val();
         var license = $('#photoDB-upload-form #license option:selected').val();
 
+        // Sent ref only for guideposts
+        if (phototype != 'gp') {
+            $('#photoDB-upload-form #ref').val('');
+        }
+
         var formData = new FormData($('#photoDB-upload-form')[0]);
         formData.append('license', license);
         formData.append('gp_type', phototype);
@@ -658,33 +663,53 @@ L.Control.PhotoDBGui = L.Control.extend({
             data: formData,
             async: false,
             success: function (data) {
-                // Find row with "parent.stop_upload" function and extract it's parameters
-                var result = data.match(/parent.stop_upload(.*);/gm).toString().replace("parent.stop_upload", "").replace(/^\(/,"").replace(");","").split(/,(?![^']*'(?:(?:[^']*'){2})*[^']*$)/);
 
-                if (result) {
-                    if (result[0] == 1) { //OK
-                        // Change button icon
-                        submitBtnIcon.attr('class', 'glyphicon glyphicon-ok text-success');
-                        toastr.success('Fotografie byla uložena na server.', 'Děkujeme', {closeButton: true, positionClass: "toast-bottom-center"});
-                    } else { // Error during upload
-                        toastr.error('Fotografii se nepodařilo uložit na server.<br><em>Detail: </em>' + result[1],
-                                    'Chyba!',
-                                    {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
-                        // Re-enable submit button
-                        $('#photoDB-upload-form #submitBtn').prop('disabled', false);
-
-                        // Change button icon
-                        submitBtnIcon.attr('class', 'glyphicon glyphicon-warning-sign text-danger');
+                function translateErrorMessage(msg) {
+                    if (msg.indexOf('file already exists') >=0 ){
+                        return msg.replace('file already exists', 'Soubor již existuje').replace('please rename your copy','použijte prosím jiné jméno');
                     }
-                } else { // Unknown state of upload
-                        toastr.error('Fotografii se nepodařilo  uložit na server.<br><em>Detail: </em>' + result[1],
-                                    'Chyba!',
-                                    {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
-                        // Re-enable submit button
-                        $('#photoDB-upload-form #submitBtn').prop('disabled', false);
 
-                        // Change button icon
-                        submitBtnIcon.attr('class', 'glyphicon glyphicon-warning-sign text-danger');
+                    return msg;
+                }
+
+                if (data.indexOf('parent.stop_upload') >= 0) {
+                    // Find row with "parent.stop_upload" function and extract it's parameters
+                    var result = data.match(/parent.stop_upload(.*);/gm).toString().replace("parent.stop_upload", "").replace(/^\(/,"").replace(");","").split(/,(?![^']*'(?:(?:[^']*'){2})*[^']*$)/);
+
+                    if (result) {
+                        if (result[0] == 1) { //OK
+                            // Change button icon
+                            submitBtnIcon.attr('class', 'glyphicon glyphicon-ok text-success');
+                            toastr.success('Fotografie byla uložena na server.', 'Děkujeme', {closeButton: true, positionClass: "toast-bottom-center"});
+                        } else { // Error during upload
+                            toastr.error('Fotografii se nepodařilo uložit na server.<br><em>Detail: </em>' + translateErrorMessage(result[1]),
+                                        'Chyba!',
+                                        {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                            // Re-enable submit button
+                            $('#photoDB-upload-form #submitBtn').prop('disabled', false);
+
+                            // Change button icon
+                            submitBtnIcon.attr('class', 'glyphicon glyphicon-warning-sign text-danger');
+                        }
+                    } else { // Unknown state of upload
+                            toastr.error('Fotografii se nepodařilo  uložit na server.<br><em>Detail: </em>' + translateErrorMessage(data),
+                                        'Chyba!',
+                                        {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                            // Re-enable submit button
+                            $('#photoDB-upload-form #submitBtn').prop('disabled', false);
+
+                            // Change button icon
+                            submitBtnIcon.attr('class', 'glyphicon glyphicon-warning-sign text-danger');
+                    }
+                } else {
+                    toastr.error('Fotografii se nepodařilo  uložit na server.<br><em>Detail: </em>' + data,
+                                'Chyba serveru!',
+                                {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                    // Re-enable submit button
+                    $('#photoDB-upload-form #submitBtn').prop('disabled', false);
+
+                    // Change button icon
+                    submitBtnIcon.attr('class', 'glyphicon glyphicon-warning-sign text-danger');
                 }
             },
             fail: function(data) {
