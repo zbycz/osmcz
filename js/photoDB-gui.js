@@ -149,7 +149,8 @@ L.Control.PhotoDBGui = L.Control.extend({
             <fieldset>
                 <div class="photoDB-btn-grp">
                     <input type="reset" id="resetBtn" name="reset" value="Reset" onclick="return false;" class="btn btn-default btn-xs"/>
-                    <input type="submit" id="submitBtn" name="submitBtn" value="Nahrát fotografii" onclick="return false;" class="btn btn-default btn-xs pull-right" disabled />
+                    <button type="submit" id="submitBtn" name="submitBtn" onclick="return false;" class="btn btn-default btn-xs pull-right" disabled>
+                    <span id="submitBtnIcon" class=""></span> Nahrát fotografii
                 </div>
             </fieldset>
         </form>
@@ -203,6 +204,7 @@ L.Control.PhotoDBGui = L.Control.extend({
             // Horizontaly center the modal dialog on screen
             $('#modalImg').on('load', function () {
                 setTimeout(function () {
+                    // TODO: tune for small screens
                     $('#myModal').css('margin-left', ($(window).width() - $('#modalImg').width() - 100)/2);
                 }, 10);
             });
@@ -307,6 +309,10 @@ L.Control.PhotoDBGui = L.Control.extend({
         var message = $('#photoDB-upload-form #photoDB-img-message');
         var reader  = new FileReader();
         var imageType = /image.*/;
+
+        // Reset upload button icon
+        var submitBtnIcon = $('#photoDB-upload-form #submitBtnIcon');
+        submitBtnIcon.attr('class', '');
 
         message.hide();
 
@@ -533,7 +539,8 @@ L.Control.PhotoDBGui = L.Control.extend({
                 url: 'https://api.openstreetmap.cz/table/licenseinfo?output=json',
                 success: function (data) {
                     if (data != "") {
-                        //show result
+                        // show result
+                        // TODO: sort licences, add more info
                         var lcSel = $('#photoDB-upload-form #license');
                         var jsonObj = JSON.parse(data);
                         Object.keys(jsonObj.licenses).forEach(function(k) {
@@ -602,12 +609,19 @@ L.Control.PhotoDBGui = L.Control.extend({
         $('#photoDB-upload-form #ref').val('');
         $('#photoDB-upload-form #note').val('');
 
+        // Reset upload button icon
+        var submitBtnIcon = $('#photoDB-upload-form #submitBtnIcon');
+        submitBtnIcon.attr('class', '');
+
         // Disable upload button
         this._updateSubmitBtnStatus();
 
     },
 
-    _submitForm: function() {
+    _submitForm: function(e) {
+
+        // Do not call original submit action
+        e.stopPropagation();
 
         // Update coors from marker
         $('#photoDB-upload-form #lat').val(this.positionMarker.getLatLng().lat);
@@ -629,6 +643,14 @@ L.Control.PhotoDBGui = L.Control.extend({
         }
 
 
+        // Disable upload button
+        $('#photoDB-upload-form #submitBtn').prop('disabled', true);
+
+        // Change button icon to indicate uploading
+        var submitBtnIcon = $('#photoDB-upload-form #submitBtnIcon');
+        submitBtnIcon.attr('class', 'glyphicon glyphicon-refresh text-info gly-spin');
+
+
         $.ajax({
 //            url: 'http://localhost/api/upload/guidepost.php',
             url: 'https://api.openstreetmap.cz/guidepost.php',
@@ -639,18 +661,41 @@ L.Control.PhotoDBGui = L.Control.extend({
                 // Find row with "parent.stop_upload" function and extract it's parameters
                 var result = data.match(/parent.stop_upload(.*);/gm).toString().replace("parent.stop_upload", "").replace(/^\(/,"").replace(");","").split(/,(?![^']*'(?:(?:[^']*'){2})*[^']*$)/);
 
-                if (result[0] == 1) { //OK
-                    toastr.success('Fotografie byla odeslána.', 'Děkujeme', {closeButton: true, positionClass: "toast-bottom-center"});
-                } else { // Error during upload
-                    toastr.error('Fotografie se nepodařilo odeslat.<br><em>Detail: </em>' + result[1],
-                                   'Chyba!',
-                                   {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                if (result) {
+                    if (result[0] == 1) { //OK
+                        // Change button icon
+                        submitBtnIcon.attr('class', 'glyphicon glyphicon-ok text-success');
+                        toastr.success('Fotografie byla uložena na server.', 'Děkujeme', {closeButton: true, positionClass: "toast-bottom-center"});
+                    } else { // Error during upload
+                        toastr.error('Fotografii se nepodařilo uložit na server.<br><em>Detail: </em>' + result[1],
+                                    'Chyba!',
+                                    {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                        // Re-enable submit button
+                        $('#photoDB-upload-form #submitBtn').prop('disabled', false);
+
+                        // Change button icon
+                        submitBtnIcon.attr('class', 'glyphicon glyphicon-warning-sign text-danger');
+                    }
+                } else { // Unknown state of upload
+                        toastr.error('Fotografii se nepodařilo  uložit na server.<br><em>Detail: </em>' + result[1],
+                                    'Chyba!',
+                                    {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                        // Re-enable submit button
+                        $('#photoDB-upload-form #submitBtn').prop('disabled', false);
+
+                        // Change button icon
+                        submitBtnIcon.attr('class', 'glyphicon glyphicon-warning-sign text-danger');
                 }
             },
             fail: function(data) {
-                toastr.error('Fotografie se nepodařilo odeslat.<br><em>Detail: </em>' + data,
+                toastr.error('Fotografii se nepodařilo  uložit na server.<br><em>Detail: </em>' + data,
                                 'Chyba!',
                                 {closeButton: true, positionClass: "toast-bottom-center", timeOut: 0});
+                // Re-enable submit button
+                $('#photoDB-upload-form #submitBtn').prop('disabled', false);
+
+                // Change button icon
+                submitBtnIcon.attr('class', 'glyphicon glyphicon-warning-sign text-danger');
                 return false;
             },
             cache: false,
