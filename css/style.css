@@ -838,12 +838,13 @@ a #photoDB-preview:hover {
 #myModal .modal-dialog {
     display: inline-block;
     width: auto;
+    margin: 15px auto;
 }
 
 #myModal .modal-body {
     position:relative;
     overflow:hidden;
-    max-height: calc(100vh - 160px);
+    max-height: calc(100vh - 50px);
 }
 
 /*#myModal {
@@ -851,7 +852,7 @@ a #photoDB-preview:hover {
 }*/
 
 #myModal #modalImg {
-    max-height: calc(100vh - 225px);
+    max-height: calc(100vh - 100px);
     height: 100%;
     width:auto;
     min-height: 120px;

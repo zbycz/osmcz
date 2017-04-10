@@ -205,7 +205,7 @@ L.Control.PhotoDBGui = L.Control.extend({
             $('#modalImg').on('load', function () {
                 setTimeout(function () {
                     // TODO: tune for small screens
-                    $('#myModal').css('margin-left', ($(window).width() - $('#modalImg').width() - 100)/2);
+                    $('#myModal').css('margin-left', ($(window).width() - $('#myModal .modal-content').width())/2);
                 }, 10);
             });
 
