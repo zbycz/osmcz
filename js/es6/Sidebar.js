@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import OpeningHours from './opening-hours/OpeningHours';
 import './Sidebar.scss';
+import osmcz from './main';
 
 class Sidebar extends Component {
     constructor(props) {
@@ -21,11 +22,19 @@ class Sidebar extends Component {
     render() {
         const {
             iconUrl,
-            feature: {properties: {tags: {
-                name: poiName = '',
-                opening_hours: openingHours = ''
-            } = {}} = {}} = {}
+            feature: {
+                osm_id,
+                osm_type,
+                properties: {
+                    tags: {
+                        name: poiName = '',
+                        opening_hours: openingHours = ''
+                    } = {}
+                } = {}
+            } = {}
         } = this.state;
+
+
         return (
             <div className="poi-sidebar">
                 <h4>
