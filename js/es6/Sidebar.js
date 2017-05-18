@@ -23,9 +23,9 @@ class Sidebar extends Component {
         const {
             iconUrl,
             feature: {
-                osm_id,
-                osm_type,
                 properties: {
+                    osm_id,
+                    osm_type,
                     tags: {
                         name: poiName = '',
                         opening_hours: openingHours = ''
@@ -33,6 +33,42 @@ class Sidebar extends Component {
                 } = {}
             } = {}
         } = this.state;
+
+
+
+        if (osm_id) {
+            let entity = {
+                osm_id,
+                osm_type,
+                geometry: () => "point",
+                isOnAddressLine: () => false,
+                tags: this.state.feature.properties.tags
+            };
+            let preset = osmcz.presets.match(entity);
+            console.log(preset);
+        }
+
+        // let fieldsArr = [];
+        //
+        // //name jako první
+        // if (presets.field('name')) {
+        //     fieldsArr.push([presets.field('name'), entity]);
+        // }
+        //
+        // // dle geometrie
+        // preset.fields.forEach(function(field) {
+        //     if (field.matchGeometry(entity.geometry())) {
+        //         fieldsArr.push(UIField(field, entity, true));
+        //     }
+        // });
+        //
+        // // universální??
+        // presets.universal().forEach(function(field) {
+        //     if (preset.fields.indexOf(field) < 0) {
+        //         fieldsArr.push(UIField(field, entity));
+        //     }
+        // });
+
 
 
         return (

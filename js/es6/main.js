@@ -6,7 +6,9 @@ import {presetIndex} from './presets/index';
 const osmcz = window.osmcz || {};
 osmcz.events = osmcz.events || {};
 osmcz.events.onPoiPanelUpdate = () => {};
-osmcz.presetIndex = presetIndex();
+osmcz.presets = presetIndex();
+osmcz.presets.init();
+//    areaKeys = presets.areaKeys();
 
 osmcz.createPoiPanel = function create(poiSidebarElement) {
     ReactDom.render(
@@ -17,5 +19,5 @@ osmcz.createPoiPanel = function create(poiSidebarElement) {
 
 window.osmcz = osmcz;
 
-export default osmcz
+export default osmcz;
 
