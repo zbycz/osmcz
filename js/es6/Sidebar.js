@@ -36,6 +36,8 @@ class Sidebar extends Component {
 
 
 
+        let preset;
+        let fields;
         if (osm_id) {
             let entity = {
                 osm_id,
@@ -44,30 +46,39 @@ class Sidebar extends Component {
                 isOnAddressLine: () => false,
                 tags: this.state.feature.properties.tags
             };
-            let preset = osmcz.presets.match(entity);
+            preset = osmcz.presets.match(entity);
             console.log(preset);
-        }
 
-        // let fieldsArr = [];
-        //
-        // //name jako první
-        // if (presets.field('name')) {
-        //     fieldsArr.push([presets.field('name'), entity]);
-        // }
-        //
-        // // dle geometrie
-        // preset.fields.forEach(function(field) {
-        //     if (field.matchGeometry(entity.geometry())) {
-        //         fieldsArr.push(UIField(field, entity, true));
-        //     }
-        // });
-        //
-        // // universální??
-        // presets.universal().forEach(function(field) {
-        //     if (preset.fields.indexOf(field) < 0) {
-        //         fieldsArr.push(UIField(field, entity));
-        //     }
-        // });
+            let fieldsArr = [];
+
+            //name jako první
+            if (osmcz.presets.field('name')) {
+                fieldsArr.push(osmcz.presets.field('name'));
+            }
+
+            // dle geometrie
+            preset.fields.forEach(function(field) {
+                if (field.matchGeometry(entity.geometry())) {
+                    fieldsArr.push(field);
+                }
+            });
+
+            // universální??
+            osmcz.presets.universal().forEach(function(field) {
+                if (preset.fields.indexOf(field) < 0) {
+                    fieldsArr.push(field);
+                }
+            });
+
+            fields = fieldsArr.map((f, step) => {
+                let x = JSON.stringify(f);
+                return (
+                    <div key={f.id}>
+                        {f.label()}: <input value={entity.tags[f.key]} onclick={()=>alert(x)}/>
+                    </div>
+                );
+            });
+        }
 
 
 
@@ -79,6 +90,9 @@ class Sidebar extends Component {
                     <span className="h4-text">{poiName}</span>
                 </h4>
                 {!!openingHours && <OpeningHours hours={openingHours}/>}
+
+                <br />
+                    {fields}
             </div>
         );
     }
