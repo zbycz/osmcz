@@ -37,12 +37,9 @@ class OpeningHours extends Component {
         );
 
         return (
-            <div className="opening-hours" onClick={this.toggleInfoDetail}>
-                <h5>
-                    <a className="expand">Otevírací doba <span className="chevron">{infoExpanded ? "\u22C0" : '\u22C1'}</span></a>
-                </h5>
-                {!infoExpanded && <OpeningHoursInfoSummary isOpen={openingInfo.getState()} todayInterval={openIntervals[0]}/>}
-                {infoExpanded && <OpeningHoursDetail intervals={openIntervals}/>}
+            <div className="opening-hours">
+                {!infoExpanded && <OpeningHoursInfoSummary isOpen={openingInfo.getState()} todayInterval={openIntervals[0]} expandHandler={this.toggleInfoDetail} />}
+                {infoExpanded && <OpeningHoursDetail intervals={openIntervals} collapseHandler={this.toggleInfoDetail}/>}
             </div>
         );
     }

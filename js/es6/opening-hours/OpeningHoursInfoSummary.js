@@ -1,20 +1,20 @@
 import React from 'react';
 import moment from 'moment';
 
-const OpeningHoursInfoSummary = ({isOpen, todayInterval}) => {
+const OpeningHoursInfoSummary = ({isOpen, todayInterval, expandHandler}) => {
     const openStatusClass = `${isOpen ? 'open' : 'closed'}`;
     const todayIntervalString = `${moment(todayInterval[0]).format('HH:mm')}-${moment(todayInterval[1]).format('HH:mm')}`;
 
     return (
-        // TODO: probably too small text
-        <h5 className="summary">
-            Nyní
-            <span className={openStatusClass}>
+        <div>
+            <b className={openStatusClass}>
                 &nbsp;{isOpen ? 'otevřeno' : 'zavřeno'}
-            </span>
+            </b>
             &nbsp;
             ({todayIntervalString})
-        </h5>
+
+            <a href="#" onClick={expandHandler}>&#9662;</a>
+        </div>
     );
 };
 OpeningHoursInfoSummary.propTypes = {
